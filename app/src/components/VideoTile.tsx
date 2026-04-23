@@ -28,13 +28,13 @@ export function VideoTile({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-xl border bg-muted/30',
+        'relative aspect-video h-full max-h-full w-auto max-w-full overflow-hidden rounded-xl border bg-muted/30',
         className
       )}
     >
       <video
         ref={ref}
-        className="aspect-video w-full object-cover"
+        className="h-full w-full object-cover"
         autoPlay
         playsInline
         muted={muted}

@@ -57,7 +57,7 @@ export default function Room() {
         : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2'
 
   return (
-    <div className="flex min-h-svh flex-col bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div>
           <p className="text-muted-foreground text-xs uppercase tracking-wide">
@@ -74,12 +74,12 @@ export default function Room() {
         </p>
       </header>
 
-      <main className="flex flex-1 flex-col">
+      <main className="flex min-h-0 flex-1 flex-col">
         <div
           className={cn(
-            'grid flex-1 gap-4 p-4',
+            'grid min-h-0 flex-1 gap-4 p-4',
             gridClass,
-            'auto-rows-fr content-start'
+            'auto-rows-fr place-items-center'
           )}
         >
           {tiles.map((t) => (
