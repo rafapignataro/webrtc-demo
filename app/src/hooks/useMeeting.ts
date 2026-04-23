@@ -7,9 +7,22 @@ import type { ServerMessage } from '@/types/signaling'
 
 const defaultWsUrl = 'ws://localhost:8787/ws'
 
+const NO_CAMERA_MESSAGE =
+  'No camera available. You joined without video. Check if another app is using it.'
+
 function signalingUrl(): string {
   const fromEnv = import.meta.env.VITE_SIGNALING_URL as string | undefined
   return (fromEnv && fromEnv.length > 0 ? fromEnv : defaultWsUrl).trim()
+}
+
+function isCameraUnavailableError(err: unknown): boolean {
+  if (!(err instanceof DOMException)) return false
+  return (
+    err.name === 'NotReadableError' ||
+    err.name === 'NotFoundError' ||
+    err.name === 'OverconstrainedError' ||
+    err.name === 'TrackStartError'
+  )
 }
 
 export function useMeeting(roomId: string) {
@@ -19,6 +32,7 @@ export function useMeeting(roomId: string) {
   )
   const [micOn, setMicOn] = useState(true)
   const [camOn, setCamOn] = useState(true)
+  const [hasCamera, setHasCamera] = useState(true)
   const [joined, setJoined] = useState(false)
   const [selfPeerId, setSelfPeerId] = useState<string | null>(null)
 
@@ -210,16 +224,31 @@ export function useMeeting(roomId: string) {
 
     const run = async () => {
       try {
-        media = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        })
+        let cameraAvailable = true
+        try {
+          media = await navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true,
+          })
+        } catch (err) {
+          if (!isCameraUnavailableError(err)) throw err
+          cameraAvailable = false
+          media = await navigator.mediaDevices.getUserMedia({
+            video: false,
+            audio: true,
+          })
+        }
         if (disposed) {
           media.getTracks().forEach((t) => t.stop())
           return
         }
         localStreamRef.current = media
         setLocalStream(media)
+        setHasCamera(cameraAvailable)
+        if (!cameraAvailable) {
+          setCamOn(false)
+          toast.error(NO_CAMERA_MESSAGE)
+        }
 
         const sig = await connectSignaling(signalingUrl(), (m) => {
           void handleMessage(m)
@@ -261,6 +290,8 @@ export function useMeeting(roomId: string) {
       setRemoteStreams(new Map())
       setJoined(false)
       setSelfPeerId(null)
+      setHasCamera(true)
+      setCamOn(true)
     }
   }, [roomId])
 
@@ -278,11 +309,16 @@ export function useMeeting(roomId: string) {
     const s = localStreamRef.current
     if (!s) return
     const next = !camOn
-    for (const t of s.getVideoTracks()) {
+    const videoTracks = s.getVideoTracks()
+    if (next && (!hasCamera || videoTracks.length === 0)) {
+      toast.error(NO_CAMERA_MESSAGE)
+      return
+    }
+    for (const t of videoTracks) {
       t.enabled = next
     }
     setCamOn(next)
-  }, [camOn])
+  }, [camOn, hasCamera])
 
   const leave = useCallback(() => {
     signalingRef.current?.send({ type: 'leave' })
