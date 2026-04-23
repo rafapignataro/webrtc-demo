@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { nanoid } from 'nanoid'
+import { customAlphabet } from 'nanoid'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -10,6 +10,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+
+const ROOM_ID_ALPHABET =
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz'
+const ROOM_ID_LENGTH = 6
+const generateRoomId = customAlphabet(ROOM_ID_ALPHABET, ROOM_ID_LENGTH)
 
 function normalizeRoomInput(raw: string): string {
   const t = raw.trim()
@@ -24,7 +29,7 @@ export default function Home() {
   const [joinCode, setJoinCode] = useState('')
 
   const startMeeting = () => {
-    const id = nanoid(10)
+    const id = generateRoomId()
     navigate(`/room/${id}`)
   }
 

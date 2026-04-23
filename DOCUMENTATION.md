@@ -25,7 +25,7 @@ webrtc-demo/
 ## 2. How it works (high level)
 
 1. User opens `/` (the `Home` page) and either:
-   - clicks **Start meeting** → generates `roomId = nanoid(10)` and navigates to `/room/:roomId`, or
+   - clicks **Start meeting** → generates a 6‑character alphanumeric `roomId` (via `nanoid/customAlphabet`) and navigates to `/room/:roomId`, or
    - pastes a room code/link and navigates to `/room/:roomId`.
 2. The `Room` page mounts `useMeeting(roomId)`, which:
    - calls `getUserMedia({ video, audio })` to get the local `MediaStream`,
@@ -186,7 +186,7 @@ Key files:
 | --- | --- |
 | `src/main.tsx` | Router + theme + sonner toaster. |
 | `src/App.tsx` | Routes: `/` → `Home`, `/room/:roomId` → `Room`. |
-| `src/pages/Home.tsx` | "Start meeting" (generates `nanoid(10)`) and "Join meeting" (accepts code or full URL). |
+| `src/pages/Home.tsx` | "Start meeting" (generates a 6‑char alphanumeric room code via `nanoid/customAlphabet`) and "Join meeting" (accepts code or full URL). |
 | `src/pages/Room.tsx` | Renders the responsive grid of `VideoTile`s + `Controls`, shows connection status. |
 | `src/hooks/useMeeting.ts` | The brains: media capture, signaling wiring, mesh PC management, mic/cam toggle, cleanup. |
 | `src/lib/signaling.ts` | Typed WebSocket wrapper: `connectSignaling(url, onMessage)` → `{ send, close }`. |
